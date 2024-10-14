@@ -1,0 +1,55 @@
+commerce_order.commerce_order_type.*.third_party.commerce_cart:
+  type: mapping
+  label: 'Shopping cart settings'
+  mapping:
+    enabled:
+      type: boolean
+      label: 'Enables cart sharing for order type'
+    shared_cart_expiration:
+      type: mapping
+      label: 'Sharing cart expiration'
+      mapping:
+        number:
+          type: integer
+          label: 'Interval'
+        unit:
+          type: string
+          label: 'Unit'
+    modal:
+      label: 'Sharing cart modal settings'
+      type: mapping
+      mapping:
+        title:
+          type: string
+          label: 'Modal Title'
+          translatable: true
+        text:
+          type: mapping
+          label: 'Modal formattable text'
+          mapping:
+            value:
+              type: string
+              label: 'Modal text'
+              translatable: true
+            format:
+              type: string
+              label: 'Modal text format'
+    mail:
+      label: 'Sharing cart mail settings'
+      type: mapping
+      mapping:
+        subject:
+          type: string
+          label: 'Mail Subject'
+          translatable: true
+        body:
+          type: mapping
+          label: 'Mail formattable text'
+          mapping:
+            value:
+              type: string
+              label: 'Mail text'
+              translatable: true
+            format:
+              type: string
+              label: 'Mail text format'

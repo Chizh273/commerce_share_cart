@@ -1,0 +1,9 @@
+{
+    "name": "drupal/commerce_share_cart",
+    "description": "Provides functionality for sharing your cart with other users via mail.",
+    "type": "drupal-module",
+    "minimum-stability": "dev",
+    "require": {
+        "drupal/commerce": "^3"
+    }
+}

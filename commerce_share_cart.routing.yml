@@ -1,0 +1,23 @@
+commerce_share_cart.share_cart:
+  path: '/cart-sharing/{cart}'
+  defaults:
+    _title: 'Cart Share'
+    _form: 'Drupal\commerce_share_cart\Form\SharingCartForm'
+  requirements:
+    _permission: 'create shared carts'
+  options:
+    parameters:
+      cart:
+        type: entity:commerce_order
+
+commerce_share_cart.share_cart_confirm:
+  path: '/cart-sharing/{cart}/{timestamp}/{hash}'
+  defaults:
+    _title: 'Process Cart Sharing'
+    _controller: 'Drupal\commerce_share_cart\Controller\ProcessSharedCartController::sharedCartPage'
+  requirements:
+    _custom_access: '\Drupal\commerce_share_cart\Controller\ProcessSharedCartController::access'
+  options:
+    parameters:
+      cart:
+        type: entity:commerce_order

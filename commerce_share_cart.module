@@ -1,0 +1,238 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for commerce_share_cart module.
+ */
+
+use Drupal\commerce_share_cart\Plugin\views\field\AddOrderItem;
+use Drupal\commerce_share_cart\SharedCartInterface;
+use Drupal\Component\Serialization\Json;
+use Drupal\Component\Utility\Tags;
+use Drupal\Core\Database\Query\SelectInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
+use Drupal\views\Form\ViewsForm;
+use Drupal\views\Plugin\views\query\QueryPluginBase;
+use Drupal\views\ViewExecutable;
+
+/**
+ * Implements hook_cron().
+ */
+function commerce_share_cart_cron(): void {
+  \Drupal::service('commerce_share_cart.cron')->run();
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function commerce_share_cart_form_alter(&$form, FormStateInterface $form_state, $form_id): void {
+  if ($form_state->getFormObject() instanceof ViewsForm) {
+    /** @var \Drupal\views\ViewExecutable $view */
+    $view = reset($form_state->getBuildInfo()['args']);
+    $tags = Tags::explode($view->storage->get('tag'));
+    // Add the `Share` button if the cart form view has order items and share
+    // functionality was enabled for such order type.
+    if (in_array('commerce_cart_form', $tags, TRUE) && !empty($view->result)) {
+      $cart = \Drupal::entityTypeManager()
+        ->getStorage('commerce_order')
+        ->load($view->argument['order_id']->value[0]);
+      /** @var \Drupal\commerce_order\Entity\OrderTypeInterface $order_type */
+      $order_type = \Drupal::entityTypeManager()
+        ->getStorage('commerce_order_type')
+        ->load($cart->bundle());
+
+      if ($order_type->getThirdPartySetting('commerce_share_cart', 'enabled')) {
+        $form['#attributes']['class'][] = 'commerce-share-cart-form-' . $cart->id();
+        $form['actions']['share'] = [
+          '#type' => 'link',
+          '#title' => t('Share'),
+          '#url' => Url::fromRoute('commerce_share_cart.share_cart', [
+            'cart' => $cart->id(),
+          ]),
+          '#attributes' => [
+            'class' => ['use-ajax', 'button'],
+            'data-dialog-type' => 'modal',
+            'data-dialog-options' => Json::encode([
+              'title' => \Drupal::token()->replace(
+                $order_type->getThirdPartySetting('commerce_share_cart', 'modal_title'),
+                ['commerce_order' => $cart],
+              ),
+            ]),
+          ],
+        ];
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter() for 'commerce_order_type_form'.
+ */
+function commerce_share_cart_form_commerce_order_type_form_alter(array &$form, FormStateInterface $form_state): void {
+  /** @var \Drupal\commerce_order\Entity\OrderTypeInterface $order_type */
+  $order_type = $form_state->getFormObject()->getEntity();
+
+  $modal = $order_type->getThirdPartySetting('commerce_share_cart', 'modal');
+  $mail = $order_type->getThirdPartySetting('commerce_share_cart', 'mail');
+  $cart_expiration = $order_type->getThirdPartySetting('commerce_share_cart', 'shared_cart_expiration');
+
+  $form['commerce_cart_share'] = [
+    '#type' => 'vertical_tabs',
+    '#title' => t('Cart sharing settings'),
+    '#weight' => 6,
+    '#tree' => TRUE,
+  ];
+
+  $form['commerce_cart_share']['general'] = [
+    '#type' => 'details',
+    '#title' => t('General'),
+    '#group' => 'commerce_cart_share',
+  ];
+  $form['commerce_cart_share']['general']['enabled'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Enable cart sharing'),
+    '#description' => t('Check this checkbox to allow users to share their shopping cart with others.'),
+    '#default_value' => $order_type->getThirdPartySetting('commerce_share_cart', 'enabled'),
+  ];
+  $form['commerce_cart_share']['general']['cart_expiration'] = [
+    '#type' => 'container',
+    '#attributes' => [
+      'class' => ['interval'],
+    ],
+  ];
+  $form['commerce_cart_share']['general']['shared_cart_expiration']['number'] = [
+    '#type' => 'number',
+    '#title' => t('Cart expiration interval'),
+    '#default_value' => !empty($cart_expiration['number']) ? $cart_expiration['number'] : 30,
+    '#required' => TRUE,
+    '#min' => 1,
+  ];
+  $form['commerce_cart_share']['general']['shared_cart_expiration']['unit'] = [
+    '#type' => 'select',
+    '#title' => t('Unit'),
+    '#title_display' => 'invisible',
+    '#default_value' => !empty($cart_expiration['unit']) ? $cart_expiration['unit'] : 'day',
+    '#options' => [
+      'minute' => t('Minute'),
+      'hour' => t('Hour'),
+      'day' => t('Day'),
+      'month' => t('Month'),
+    ],
+    '#required' => TRUE,
+  ];
+
+  $form['commerce_cart_share']['modal'] = [
+    '#type' => 'details',
+    '#title' => t('Modal'),
+    '#description' => t('Edit the share modal title and text.'),
+    '#group' => 'commerce_cart_share',
+  ];
+  $form['commerce_cart_share']['modal']['title'] = [
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#default_value' => $modal['title'] ?? t('Share your cart'),
+  ];
+  $form['commerce_cart_share']['modal']['text'] = [
+    '#type' => 'text_format',
+    '#title' => t('Text'),
+    '#default_value' => $modal['text']['value'] ?? '',
+    '#format' => $modal['text']['format'] ?? NULL,
+  ];
+  $form['commerce_cart_share']['modal']['token_tree'] = [
+    '#theme' => 'token_tree_link',
+    '#token_types' => ['commerce_order'],
+    '#show_restricted' => TRUE,
+  ];
+
+  $form['commerce_cart_share']['mail'] = [
+    '#type' => 'details',
+    '#title' => t('Mail'),
+    '#description' => t('Edit the sharing cart mail subject and body.'),
+    '#group' => 'commerce_cart_share',
+  ];
+  $form['commerce_cart_share']['mail']['subject'] = [
+    '#type' => 'textfield',
+    '#title' => t('Subject'),
+    '#default_value' => $mail['subject'] ?? t('Shopping cart was shared with you...'),
+  ];
+  $form['commerce_cart_share']['mail']['body'] = [
+    '#type' => 'text_format',
+    '#title' => t('Body'),
+    '#default_value' => $mail['body']['value'] ?? t("<p>Hi there!</p> <p>A shopping cart was shared with you. You can view and customize the items before placing your order by clicking the link below.</p> <p>[commerce_order:cart_sharing_link]</p>"),
+    '#format' => $mail['body']['format'] ?? NULL,
+  ];
+  $form['commerce_cart_share']['mail']['token_tree'] = [
+    '#theme' => 'token_tree_link',
+    '#token_types' => ['commerce_order'],
+    '#show_restricted' => TRUE,
+  ];
+
+  $form['actions']['submit']['#submit'][] = '_commerce_share_cart_order_type_form_submit';
+}
+
+/**
+ * Form submission handler for 'commerce_order_type_form'.
+ */
+function _commerce_share_cart_order_type_form_submit($form, FormStateInterface $form_state): void {
+  /** @var \Drupal\commerce_order\Entity\OrderTypeInterface $order_type */
+  $order_type = $form_state->getFormObject()->getEntity();
+  $settings = $form_state->getValue('commerce_cart_share');
+
+  $order_type->setThirdPartySetting('commerce_share_cart', 'enabled', $settings['general']['enabled']);
+  $order_type->setThirdPartySetting('commerce_share_cart', 'shared_cart_expiration', $settings['general']['shared_cart_expiration']);
+  $order_type->setThirdPartySetting('commerce_share_cart', 'modal', $settings['modal']);
+  $order_type->setThirdPartySetting('commerce_share_cart', 'mail', $settings['mail']);
+
+  $order_type->save();
+}
+
+/**
+ * Implements hook_mail().
+ */
+function commerce_share_cart_mail($key, &$message, $params): void {
+  $message['subject'] = $params['subject'];
+  $message['body'] = [$params['body']];
+  $message['params'] = $params;
+  $message['headers']['Content-Type'] = 'text/html; charset=utf-8';
+}
+
+/**
+ * Implements hook_workflows_alter().
+ */
+function commerce_share_cart_workflows_alter(array &$workflows): void {
+  foreach ($workflows as &$workflow) {
+    $workflow['states'][SharedCartInterface::SHARED_CART_STATE] = [
+      'label' => 'Shared',
+    ];
+  }
+}
+
+/**
+ * Implements hook_views_data_alter().
+ */
+function commerce_share_cart_views_data_alter(array &$data): void {
+  $data['commerce_order_item']['add_button']['field'] = [
+    'title' => t('Add product item'),
+    'help' => t('Adds a checkboxes for adding order items to the current user cart.'),
+    'id' => AddOrderItem::PLUGIN_ID,
+  ];
+}
+
+/**
+ * Implements hook_query_TAG_alter() for `commerce_cart_expiration` tag.
+ */
+function commerce_share_cart_query_commerce_cart_expiration_alter(SelectInterface $query): void {
+  // Skip shared carts in the commerce_cart_expiration query.
+  $query->condition('state', SharedCartInterface::SHARED_CART_STATE, '<>');
+}
+
+/**
+ * Implements hook_views_query_alter().
+ */
+function commerce_share_cart_views_query_alter(ViewExecutable $view, QueryPluginBase $query): void {
+  if ($view->id() === 'commerce_user_orders' && $view->current_display === 'order_page') {
+    // Exclude shared carts from a user orders.
+    $query->addWhere('commerce_share_cart', 'commerce_order.state', SharedCartInterface::SHARED_CART_STATE, '<>');
+  }
+}

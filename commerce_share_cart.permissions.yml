@@ -1,0 +1,4 @@
+create shared carts:
+  title: 'Create shared carts'
+access any shared cart:
+  title: 'Access any shared cart'

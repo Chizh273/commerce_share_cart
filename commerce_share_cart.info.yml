@@ -1,0 +1,7 @@
+name: Commerce Share Cart
+type: module
+description: 'Allows users to share their cart via email.'
+package: Commerce
+core_version_requirement: ^10 || ^11
+dependencies:
+  - commerce_cart:commerce_cart
