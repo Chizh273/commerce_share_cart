@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Drupal\commerce_share_cart\Controller;
 
-use Drupal\commerce\Interval;
-use Drupal\commerce_order\Entity\OrderInterface;
-use Drupal\commerce_share_cart\Services\CartSharingHelper;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Config\Entity\ConfigEntityStorageInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\commerce\Interval;
+use Drupal\commerce_order\Entity\OrderInterface;
+use Drupal\commerce_share_cart\Services\CartSharingHelper;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -20,15 +20,11 @@ class ProcessSharedCartController extends ControllerBase {
 
   /**
    * The `commerce_order_type` storage.
-   *
-   * @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface
    */
   protected ConfigEntityStorageInterface $orderTypeStorage;
 
   /**
    * The cart sharing link service.
-   *
-   * @var \Drupal\commerce_share_cart\Services\CartSharingHelper
    */
   protected CartSharingHelper $cartSharingLinkService;
 
@@ -44,7 +40,13 @@ class ProcessSharedCartController extends ControllerBase {
   }
 
   /**
-   * Builds the response.
+   * Build shared cart page.
+   *
+   * @param \Drupal\commerce_order\Entity\OrderInterface $cart
+   *   The shared cart.
+   *
+   * @return array
+   *   Render array.
    */
   public function sharedCartPage(OrderInterface $cart): array {
     return [

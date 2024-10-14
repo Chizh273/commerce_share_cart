@@ -2,15 +2,15 @@
 
 namespace Drupal\commerce_share_cart\Services;
 
-use Drupal\commerce_share_cart\Plugin\QueueWorker\SharedCartExpiration;
-use Drupal\commerce_share_cart\SharedCartInterface;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Queue\QueueFactory;
+use Drupal\Core\Queue\QueueInterface;
 use Drupal\commerce\CronInterface;
 use Drupal\commerce\Interval;
-use Drupal\Core\Queue\QueueInterface;
+use Drupal\commerce_share_cart\Plugin\QueueWorker\SharedCartExpiration;
+use Drupal\commerce_share_cart\SharedCartInterface;
 
 /**
  * Default cron implementation.
@@ -23,22 +23,16 @@ class Cron implements CronInterface {
 
   /**
    * The order storage.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
    */
   protected EntityStorageInterface $orderStorage;
 
   /**
    * The order type storage.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
    */
   protected EntityStorageInterface $orderTypeStorage;
 
   /**
    * The commerce_cart_expiration queue.
-   *
-   * @var \Drupal\Core\Queue\QueueInterface
    */
   protected QueueInterface $queue;
 

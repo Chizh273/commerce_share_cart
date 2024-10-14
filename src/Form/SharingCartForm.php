@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Drupal\commerce_share_cart\Form;
 
-use Drupal\commerce_order\Entity\OrderInterface;
-use Drupal\commerce_order\Entity\OrderItem;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\CloseModalDialogCommand;
 use Drupal\Core\Ajax\PrependCommand;
@@ -17,6 +15,8 @@ use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Mail\MailManager;
 use Drupal\Core\Render\Markup;
 use Drupal\Core\Utility\Token;
+use Drupal\commerce_order\Entity\OrderInterface;
+use Drupal\commerce_order\Entity\OrderItem;
 use Drupal\user\UserInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -27,36 +27,26 @@ class SharingCartForm extends FormBase {
 
   /**
    * The `commerce_order_type` storage.
-   *
-   * @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface
    */
   protected ConfigEntityStorageInterface $orderTypeStorage;
 
   /**
    * The mail manager.
-   *
-   * @var \Drupal\Core\Mail\MailManager
    */
   protected MailManager $mailManager;
 
   /**
    * The language manager.
-   *
-   * @var \Drupal\Core\Language\LanguageManagerInterface
    */
   protected LanguageManagerInterface $languageManager;
 
   /**
    * The token service.
-   *
-   * @var \Drupal\Core\Utility\Token
    */
   protected Token $token;
 
   /**
    * The order cart.
-   *
-   * @var \Drupal\commerce_order\Entity\OrderInterface|null
    */
   protected ?OrderInterface $cart = NULL;
 
@@ -83,7 +73,7 @@ class SharingCartForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, OrderInterface $cart = NULL): array {
+  public function buildForm(array $form, FormStateInterface $form_state, ?OrderInterface $cart = NULL): array {
     if ($cart === NULL) {
       return $form;
     }

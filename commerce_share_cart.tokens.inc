@@ -5,8 +5,8 @@
  * Provides Token integration for Address.
  */
 
-use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\commerce_order\Entity\OrderInterface;
 
 /**
  * Implements hook_token_info().
@@ -27,16 +27,14 @@ function commerce_share_cart_tokens($type, $tokens, array $data, array $options,
   $replacements = [];
 
   if ($type === 'commerce_order' && isset($data['commerce_order']) && $data['commerce_order'] instanceof OrderInterface) {
-    /** @var \Drupal\commerce_share_cart\Services\CartSharingHelper $service */
-    $service = \Drupal::service('commerce_share_cart.cart_sharing_helper');
+    /** @var \Drupal\commerce_share_cart\Services\CartSharingHelper $cart_sharing_helper */
+    $cart_sharing_helper = \Drupal::service('commerce_share_cart.cart_sharing_helper');
 
     foreach ($tokens as $name => $original) {
-      switch ($name) {
-        case 'cart_sharing_link':
-          $replacements[$original] = $service
-            ->generateSharingUrl($data['commerce_order'])
-            ->toString();
-          break;
+      if ($name == 'cart_sharing_link') {
+        $replacements[$original] = $cart_sharing_helper
+          ->generateSharingUrl($data['commerce_order'])
+          ->toString();
       }
     }
   }

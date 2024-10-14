@@ -12,4 +12,3 @@ interface SharedCartInterface {
   const string SHARED_CART_STATE = 'shared_cart';
 
 }
-

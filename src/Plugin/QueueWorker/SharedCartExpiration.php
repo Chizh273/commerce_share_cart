@@ -2,13 +2,13 @@
 
 namespace Drupal\commerce_share_cart\Plugin\QueueWorker;
 
-use Drupal\commerce\Interval;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\Attribute\QueueWorker;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\commerce\Interval;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -25,15 +25,11 @@ class SharedCartExpiration extends QueueWorkerBase implements ContainerFactoryPl
 
   /**
    * The order storage.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
    */
   protected EntityStorageInterface $orderStorage;
 
   /**
    * The order type storage.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
    */
   protected EntityStorageInterface $orderTypeStorage;
 
@@ -42,12 +38,10 @@ class SharedCartExpiration extends QueueWorkerBase implements ContainerFactoryPl
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): self {
     $instance = new self($configuration, $plugin_id, $plugin_definition);
-
     $instance->orderStorage = $container->get('entity_type.manager')
       ->getStorage('commerce_order');
     $instance->orderTypeStorage = $container->get('entity_type.manager')
       ->getStorage('commerce_order_type');
-
     return $instance;
   }
 

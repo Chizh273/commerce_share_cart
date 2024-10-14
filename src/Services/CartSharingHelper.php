@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Drupal\commerce_share_cart\Services;
 
-use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\Component\Datetime\Time;
 use Drupal\Component\Utility\Crypt;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\Url;
+use Drupal\commerce_order\Entity\OrderInterface;
 
 /**
  * The CartSharingHelper service.

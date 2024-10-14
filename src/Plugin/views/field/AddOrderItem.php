@@ -2,12 +2,12 @@
 
 namespace Drupal\commerce_share_cart\Plugin\views\field;
 
-use Drupal\commerce_cart\CartManagerInterface;
-use Drupal\commerce_cart\CartProviderInterface;
 use Drupal\Core\Config\Entity\ConfigEntityStorageInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Url;
+use Drupal\commerce_cart\CartManagerInterface;
+use Drupal\commerce_cart\CartProviderInterface;
 use Drupal\views\Attribute\ViewsField;
 use Drupal\views\Plugin\views\field\FieldPluginBase;
 use Drupal\views\Plugin\views\field\UncacheableFieldHandlerTrait;
@@ -27,36 +27,26 @@ class AddOrderItem extends FieldPluginBase {
 
   /**
    * The cart manager.
-   *
-   * @var \Drupal\commerce_cart\CartManagerInterface
    */
   protected CartManagerInterface $cartManager;
 
   /**
    * The commerce_order_type entity storage.
-   *
-   * @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface
    */
   protected ConfigEntityStorageInterface $orderTypeStorage;
 
   /**
    * The commerce_order_type entity storage.
-   *
-   * @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface
    */
   protected ConfigEntityStorageInterface $orderItemTypeStorage;
 
   /**
    * The cart provider.
-   *
-   * @var \Drupal\commerce_cart\CartProviderInterface
    */
   protected CartProviderInterface $cartProvider;
 
   /**
    * The current user.
-   *
-   * @var \Drupal\Core\Session\AccountProxyInterface
    */
   protected AccountProxyInterface $currentUser;
 
@@ -65,7 +55,6 @@ class AddOrderItem extends FieldPluginBase {
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): self {
     $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
-
     $instance->cartManager = $container->get('commerce_cart.cart_manager');
     $instance->orderTypeStorage = $container->get('entity_type.manager')
       ->getStorage('commerce_order_type');
@@ -74,7 +63,6 @@ class AddOrderItem extends FieldPluginBase {
     $instance->messenger = $container->get('messenger');
     $instance->cartProvider = $container->get('commerce_cart.cart_provider');
     $instance->currentUser = $container->get('current_user');
-
     return $instance;
   }
 
